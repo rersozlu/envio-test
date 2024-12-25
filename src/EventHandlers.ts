@@ -14,9 +14,14 @@ ERC20.Transfer.handlerWithLoader({
       receiverAccount: Account;
     };
 
+    if (senderAccount != undefined && receiverAccount != undefined) {
+      if (senderAccount.address == receiverAccount.address) {
+        return;
+      }
+    }
+
     if (senderAccount === undefined) {
       // create the account
-      // This is likely only ever going to be the zero address in the case of the first mint
       let accountObject: Account = {
         id: event.params.from.toLowerCase() + event.srcAddress.toLowerCase(),
         balance: 0n - event.params.value,
