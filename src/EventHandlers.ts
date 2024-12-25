@@ -3,8 +3,8 @@ import { ERC20, Account } from "generated";
 ERC20.Transfer.handlerWithLoader({
   loader: async ({ event, context }) => {
     const [senderAccount, receiverAccount] = await Promise.all([
-      context.Account.get(event.params.from.toString()),
-      context.Account.get(event.params.to.toString()),
+      context.Account.get(event.params.from.toLowerCase() + event.srcAddress.toLowerCase()),
+      context.Account.get(event.params.to.toLowerCase() + event.srcAddress.toLowerCase()),
     ]);
     return { senderAccount, receiverAccount };
   },
@@ -18,9 +18,10 @@ ERC20.Transfer.handlerWithLoader({
       // create the account
       // This is likely only ever going to be the zero address in the case of the first mint
       let accountObject: Account = {
-        id: event.params.from.toString() + event.srcAddress.toString(),
+        id: event.params.from.toLowerCase() + event.srcAddress.toLowerCase(),
         balance: 0n - event.params.value,
-        address: event.params.from.toString(),
+        address: event.params.from.toLowerCase(),
+        tokenAddress: event.srcAddress.toLowerCase(),
       };
 
       context.Account.set(accountObject);
@@ -30,6 +31,7 @@ ERC20.Transfer.handlerWithLoader({
         id: senderAccount.id,
         balance: senderAccount.balance - event.params.value,
         address: senderAccount.address.toLowerCase(),
+        tokenAddress: senderAccount.tokenAddress.toLowerCase(),
       };
       context.Account.set(accountObject);
     }
@@ -37,9 +39,10 @@ ERC20.Transfer.handlerWithLoader({
     if (receiverAccount === undefined) {
       // create new account
       let accountObject: Account = {
-        id: event.params.to.toString() + event.srcAddress.toString(),
+        id: event.params.to.toLowerCase() + event.srcAddress.toLowerCase(),
         balance: event.params.value,
-        address: event.params.to.toString().toLowerCase(),
+        address: event.params.to.toLowerCase(),
+        tokenAddress: event.srcAddress.toLowerCase(),
       };
       context.Account.set(accountObject);
     } else {
@@ -48,6 +51,7 @@ ERC20.Transfer.handlerWithLoader({
         id: receiverAccount.id,
         balance: receiverAccount.balance + event.params.value,
         address: receiverAccount.address.toLowerCase(),
+        tokenAddress: receiverAccount.tokenAddress.toLowerCase(),
       };
 
       context.Account.set(accountObject);
