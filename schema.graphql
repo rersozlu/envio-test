@@ -1,6 +1,6 @@
 type Account {
   id: ID!
-  address: String!
+  address: String! @index
   balance: BigInt!
-  tokenAddress: String!
+  tokenAddress: String! @index
 }
