@@ -3,37 +3,37 @@ import { getRedisInstance } from "./utils/Redis";
 class WalletCache {
   private readonly CACHE_KEY = "clave:wallets";
   private redis: Awaited<ReturnType<typeof getRedisInstance>> | undefined;
-  private readonly MAX_RETRIES = 3;
-  private readonly RETRY_DELAY = 100; // ms
+  private inMemoryCache: Set<string> = new Set();
 
   constructor() {
     this.initialize();
   }
 
   async initialize() {
+    // Create two connections - one for subscribing and one for getting data
     this.redis = await getRedisInstance({
-      host: process.env.REDIS_HOST || "redis-12945.c300.eu-central-1-1.ec2.redns.redis-cloud.com",
-      port: parseInt(process.env.REDIS_PORT || "12945"),
-      username: process.env.REDIS_USERNAME || "default",
-      password: process.env.REDIS_PASSWORD || "YPbmBSP7lBumkk4oL6djJH4tfowkpDNo",
+      host: process.env.REDIS_HOST || "localhost",
+      port: parseInt(process.env.REDIS_PORT || "6379"),
+      username: process.env.REDIS_USERNAME,
+      password: process.env.REDIS_PASSWORD,
+    });
+
+    await this.updateInMemoryCache();
+    await this.subscribeToSetOperations();
+  }
+
+  private async updateInMemoryCache() {
+    await this.redis!.sMembers(this.CACHE_KEY).then((members) => {
+      this.inMemoryCache = new Set(members);
     });
   }
 
-  private async retryOperation<T>(operation: () => Promise<T>): Promise<T> {
-    let lastError: Error;
+  private async subscribeToSetOperations() {
+    const keyspaceChannel = `__keyspace@0__:${this.CACHE_KEY}`;
 
-    for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
-      try {
-        return await operation();
-      } catch (error) {
-        lastError = error as Error;
-        if (attempt < this.MAX_RETRIES) {
-          await new Promise((resolve) => setTimeout(resolve, this.RETRY_DELAY * attempt));
-        }
-      }
-    }
-
-    throw lastError!;
+    await this.redis!.subscribe(keyspaceChannel, () => {
+      this.updateInMemoryCache();
+    });
   }
 
   async bulkCheckClaveWallets(addresses: Array<string>): Promise<Set<string>> {
@@ -45,16 +45,12 @@ class WalletCache {
       const claveAddresses = new Set<string>();
       const lowercaseAddresses = addresses.map((addr) => addr.toLowerCase());
 
-      await Promise.all(
-        lowercaseAddresses.map(async (address) => {
-          const isMember = await this.retryOperation(() =>
-            this.redis!.sIsMember(this.CACHE_KEY, address)
-          );
-          if (isMember) {
-            claveAddresses.add(address);
-          }
-        })
-      );
+      lowercaseAddresses.forEach((address) => {
+        const isMember = this.inMemoryCache.has(address);
+        if (isMember) {
+          claveAddresses.add(address);
+        }
+      });
 
       return claveAddresses;
     } catch (error) {

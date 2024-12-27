@@ -56,6 +56,7 @@ ERC20.Transfer.handlerWithLoader({
         address: senderAccount.address.toLowerCase(),
         token_id: senderAccount.token_id,
       };
+
       context.Account.set(accountObject);
     }
 
@@ -67,9 +68,8 @@ ERC20.Transfer.handlerWithLoader({
         address: event.params.to.toLowerCase(),
         token_id: generatedToken.id,
       };
-      console.log(accountObject);
+
       context.Account.set(accountObject);
-      console.log("created account");
     } else if (claveAddresses.has(event.params.to.toLowerCase())) {
       // update existing account
       let accountObject: Account = {

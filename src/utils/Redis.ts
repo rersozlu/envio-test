@@ -46,5 +46,8 @@ export const getRedisInstance = async ({
   client.on("error", (err) => console.error("Redis Client Error", err));
   await client.connect();
 
+  // Enable keyspace notifications for Set operations
+  await client.configSet("notify-keyspace-events", "KE$");
+
   return client;
 };
