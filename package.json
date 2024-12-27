@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "envio": "2.11.6",
+    "redis": "4.7.0",
     "viem": "2.21.0"
   },
   "optionalDependencies": {

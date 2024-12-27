@@ -1,31 +1,44 @@
 import { ERC20, Account, Token } from "generated";
 import { getOrCreateToken } from "./viem/Contract";
+import { walletCache } from "./WalletCache";
 
 ERC20.Transfer.handlerWithLoader({
   loader: async ({ event, context }) => {
-    const [senderAccount, receiverAccount, token] = await Promise.all([
+    const [senderAccount, receiverAccount, token, claveAddresses] = await Promise.all([
       context.Account.get(event.params.from.toLowerCase() + event.srcAddress.toLowerCase()),
       context.Account.get(event.params.to.toLowerCase() + event.srcAddress.toLowerCase()),
       context.Token.get(event.srcAddress.toLowerCase()),
+      walletCache.bulkCheckClaveWallets([
+        event.params.from.toLowerCase(),
+        event.params.to.toLowerCase(),
+      ]),
     ]);
-    return { senderAccount, receiverAccount, token };
+    return {
+      senderAccount,
+      receiverAccount,
+      token,
+      claveAddresses,
+    };
   },
   handler: async ({ event, context, loaderReturn }) => {
-    const { senderAccount, receiverAccount, token } = loaderReturn as {
+    const { senderAccount, receiverAccount, token, claveAddresses } = loaderReturn as {
       senderAccount: Account;
       receiverAccount: Account;
       token: Token;
+      claveAddresses: Set<string>;
     };
 
-    if (senderAccount != undefined && receiverAccount != undefined) {
-      if (senderAccount.address == receiverAccount.address) {
-        return;
-      }
+    if (claveAddresses.size == 0) {
+      return;
+    }
+
+    if (event.params.to === event.params.from) {
+      return;
     }
 
     const generatedToken = await getOrCreateToken(event.srcAddress.toLowerCase(), token, context);
 
-    if (senderAccount === undefined) {
+    if (senderAccount === undefined && claveAddresses.has(event.params.from.toLowerCase())) {
       // create the account
       let accountObject: Account = {
         id: event.params.from.toLowerCase() + generatedToken.id,
@@ -35,7 +48,7 @@ ERC20.Transfer.handlerWithLoader({
       };
 
       context.Account.set(accountObject);
-    } else {
+    } else if (claveAddresses.has(event.params.from.toLowerCase())) {
       // subtract the balance from the existing users balance
       let accountObject: Account = {
         id: senderAccount.id,
@@ -46,7 +59,7 @@ ERC20.Transfer.handlerWithLoader({
       context.Account.set(accountObject);
     }
 
-    if (receiverAccount === undefined) {
+    if (receiverAccount === undefined && claveAddresses.has(event.params.to.toLowerCase())) {
       // create new account
       let accountObject: Account = {
         id: event.params.to.toLowerCase() + generatedToken.id,
@@ -54,8 +67,10 @@ ERC20.Transfer.handlerWithLoader({
         address: event.params.to.toLowerCase(),
         token_id: generatedToken.id,
       };
+      console.log(accountObject);
       context.Account.set(accountObject);
-    } else {
+      console.log("created account");
+    } else if (claveAddresses.has(event.params.to.toLowerCase())) {
       // update existing account
       let accountObject: Account = {
         id: receiverAccount.id,
