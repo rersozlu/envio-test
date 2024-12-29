@@ -12,10 +12,10 @@ class WalletCache {
   async initialize() {
     // Create two connections - one for subscribing and one for getting data
     this.redis = await getRedisInstance({
-      host: process.env.REDIS_HOST || "localhost",
-      port: parseInt(process.env.REDIS_PORT || "6379"),
-      username: process.env.REDIS_USERNAME,
-      password: process.env.REDIS_PASSWORD,
+      host: process.env.REDIS_HOST || "redis-12945.c300.eu-central-1-1.ec2.redns.redis-cloud.com",
+      port: parseInt(process.env.REDIS_PORT || "12945"),
+      username: process.env.REDIS_USERNAME || "default",
+      password: process.env.REDIS_PASSWORD || "YPbmBSP7lBumkk4oL6djJH4tfowkpDNo",
     });
 
     await this.updateInMemoryCache();
