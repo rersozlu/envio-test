@@ -1,6 +1,8 @@
 import { ERC20, Account, Token } from "generated";
 import { getOrCreateToken } from "./viem/Contract";
 import { walletCache } from "./WalletCache";
+import { priceFetcher } from "./PriceFetcher";
+priceFetcher;
 
 ERC20.Transfer.handlerWithLoader({
   loader: async ({ event, context }) => {
@@ -28,11 +30,13 @@ ERC20.Transfer.handlerWithLoader({
       claveAddresses: Set<string>;
     };
 
-    if (claveAddresses.size == 0) {
-      return;
+    if (event.block.number % 300 === 0) {
+      try {
+        priceFetcher.genOdosTokenPrices(context, event);
+      } catch {}
     }
 
-    if (event.params.to === event.params.from) {
+    if (claveAddresses.size == 0) {
       return;
     }
 
