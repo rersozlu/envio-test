@@ -30,11 +30,9 @@ ERC20.Transfer.handlerWithLoader({
       claveAddresses: Set<string>;
     };
 
-    if (event.block.number % 300 === 0) {
-      try {
-        priceFetcher.genOdosTokenPrices(context, event);
-      } catch {}
-    }
+    try {
+      priceFetcher.genOdosTokenPrices(context, event);
+    } catch {}
 
     if (claveAddresses.size == 0) {
       return;
