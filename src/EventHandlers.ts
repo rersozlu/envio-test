@@ -30,15 +30,17 @@ ERC20.Transfer.handlerWithLoader({
       claveAddresses: Set<string>;
     };
 
-    try {
-      priceFetcher.genOdosTokenPrices(context, event);
-    } catch {}
-
     if (claveAddresses.size == 0) {
       return;
     }
 
     const generatedToken = await getOrCreateToken(event.srcAddress.toLowerCase(), token, context);
+
+    try {
+      await priceFetcher.genOdosTokenPrices(context, event);
+    } catch (e) {
+      console.log(e);
+    }
 
     if (senderAccount === undefined && claveAddresses.has(event.params.from.toLowerCase())) {
       // create the account

@@ -23,7 +23,7 @@ class PriceFetcher {
   ODOS_BASE_URL = "https://api.odos.xyz/pricing/token";
   latestHandledBlock = 0;
   syncInterval = 300;
-  asyncInterval = 1000000;
+  asyncInterval = 100000;
 
   public async genOdosTokenPrices(
     context: handlerContext,
@@ -71,7 +71,7 @@ class PriceFetcher {
           name: token.name,
           symbol: token.symbol,
           decimals: token.decimals,
-          price: lowercaseResponse[address],
+          price: Number(lowercaseResponse[address]),
         };
         context.Token.set(tokenObject);
       }
