@@ -65,13 +65,13 @@ class PriceFetcher {
     const lowercaseResponse = lowerCaseResponse;
     Object.keys(lowercaseResponse).forEach(async (address) => {
       const token = await context.Token.get(address);
-      if (token) {
+      if (token && typeof lowercaseResponse[address] === "number") {
         const tokenObject: Token = {
           id: token.id,
           name: token.name,
           symbol: token.symbol,
           decimals: token.decimals,
-          price: Number(lowercaseResponse[address]),
+          price: lowercaseResponse[address],
         };
         context.Token.set(tokenObject);
       }
