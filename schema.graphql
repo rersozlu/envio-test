@@ -23,9 +23,9 @@ type Token {
 
 type Transfer {
   id: ID!
-  from: String!
-  to: String!
-  token: String!
+  from: String! @index
+  to: String! @index
+  token: String! @index
   value: BigInt!
   timestamp: BigInt
   blockNumber: BigInt
