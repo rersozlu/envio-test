@@ -2,7 +2,8 @@ import { getRedisInstance } from "./utils/Redis";
 
 class WalletCache {
   private readonly CACHE_KEY = "clave:wallets";
-  private redis: Awaited<ReturnType<typeof getRedisInstance>> | undefined;
+  private redisCommand: Awaited<ReturnType<typeof getRedisInstance>> | undefined;
+  private redisSub: Awaited<ReturnType<typeof getRedisInstance>> | undefined;
   private inMemoryCache: Set<string> = new Set();
 
   constructor() {
@@ -11,33 +12,44 @@ class WalletCache {
 
   async initialize() {
     // Create two connections - one for subscribing and one for getting data
-    this.redis = await getRedisInstance({
-      host: process.env.REDIS_HOST || "redis-12945.c300.eu-central-1-1.ec2.redns.redis-cloud.com",
-      port: parseInt(process.env.REDIS_PORT || "12945"),
-      username: process.env.REDIS_USERNAME || "default",
-      password: process.env.REDIS_PASSWORD || "YPbmBSP7lBumkk4oL6djJH4tfowkpDNo",
-    });
+    const [commandClient, subClient] = await Promise.all([
+      getRedisInstance({
+        host: process.env.REDIS_HOST || "redis-12945.c300.eu-central-1-1.ec2.redns.redis-cloud.com",
+        port: parseInt(process.env.REDIS_PORT || "12945"),
+        username: process.env.REDIS_USERNAME || "default",
+        password: process.env.REDIS_PASSWORD || "YPbmBSP7lBumkk4oL6djJH4tfowkpDNo",
+      }),
+      getRedisInstance({
+        host: process.env.REDIS_HOST || "redis-12945.c300.eu-central-1-1.ec2.redns.redis-cloud.com",
+        port: parseInt(process.env.REDIS_PORT || "12945"),
+        username: process.env.REDIS_USERNAME || "default",
+        password: process.env.REDIS_PASSWORD || "YPbmBSP7lBumkk4oL6djJH4tfowkpDNo",
+        isSubscriptionClient: true,
+      }),
+    ]);
+
+    this.redisCommand = commandClient;
+    this.redisSub = subClient;
 
     await this.updateInMemoryCache();
     await this.subscribeToSetOperations();
   }
 
   private async updateInMemoryCache() {
-    await this.redis!.sMembers(this.CACHE_KEY).then((members) => {
-      this.inMemoryCache = new Set(members);
-    });
+    const members = await this.redisCommand!.sMembers(this.CACHE_KEY);
+    this.inMemoryCache = new Set(members);
   }
 
   private async subscribeToSetOperations() {
     const keyspaceChannel = `__keyspace@0__:${this.CACHE_KEY}`;
 
-    await this.redis!.subscribe(keyspaceChannel, () => {
+    await this.redisSub!.subscribe(keyspaceChannel, () => {
       this.updateInMemoryCache();
     });
   }
 
   async bulkCheckClaveWallets(addresses: Array<string>): Promise<Set<string>> {
-    if (!this.redis) {
+    if (!this.redisCommand) {
       await this.initialize();
     }
 
