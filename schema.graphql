@@ -30,4 +30,5 @@ type Transfer {
   timestamp: BigInt
   blockNumber: BigInt
   transactionHash: String
+  logIndex: Int
 }
