@@ -5,10 +5,29 @@ type Account {
   token: Token! @index
 }
 
+type HistoricalAccount {
+  id: ID!
+  address: String! @index
+  balance: BigInt!
+  token: Token! @index
+  timestamp: BigInt! @index
+}
+
 type Token {
   id: ID!
   name: String
   symbol: String
   decimals: Int
   price: Float
+}
+
+type Transfer {
+  id: ID!
+  from: String!
+  to: String!
+  token: String!
+  value: BigInt!
+  timestamp: BigInt
+  blockNumber: BigInt
+  transactionHash: String
 }
