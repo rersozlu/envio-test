@@ -20,15 +20,3 @@ type Token {
   decimals: Int
   price: Float
 }
-
-type Transfer {
-  id: ID!
-  from: String! @index
-  to: String! @index
-  token: String! @index
-  value: BigInt!
-  timestamp: BigInt
-  blockNumber: BigInt
-  transactionHash: String
-  logIndex: Int
-}

@@ -1,4 +1,4 @@
-import { ERC20, Account, Token, HistoricalAccount, Transfer } from "generated";
+import { ERC20, Account, Token } from "generated";
 import { getOrCreateToken } from "./viem/Contract";
 import { walletCache } from "./WalletCache";
 import { priceFetcher } from "./PriceFetcher";
@@ -45,20 +45,7 @@ ERC20.Transfer.handlerWithLoader({
       console.log(e);
     }
 
-    const transferObject: Transfer = {
-      id: event.transaction.hash + event.logIndex.toString(),
-      from: event.params.from.toLowerCase(),
-      to: event.params.to.toLowerCase(),
-      token: event.srcAddress.toLowerCase(),
-      value: event.params.value,
-      timestamp: BigInt(event.block.timestamp),
-      blockNumber: BigInt(event.block.number),
-      transactionHash: event.transaction.hash,
-      logIndex: event.logIndex,
-    };
-
     if (event.params.from === event.params.to) {
-      context.Transfer.set(transferObject);
       return;
     }
 
@@ -77,7 +64,6 @@ ERC20.Transfer.handlerWithLoader({
         id: accountObject.id + event.block.timestamp.toString(),
         timestamp: BigInt(event.block.timestamp),
       });
-      context.Transfer.set(transferObject);
     } else if (claveAddresses.has(event.params.from.toLowerCase())) {
       // subtract the balance from the existing users balance
       let accountObject: Account = {
@@ -93,7 +79,6 @@ ERC20.Transfer.handlerWithLoader({
         id: accountObject.id + event.block.timestamp.toString(),
         timestamp: BigInt(event.block.timestamp),
       });
-      context.Transfer.set(transferObject);
     }
 
     if (receiverAccount === undefined && claveAddresses.has(event.params.to.toLowerCase())) {
@@ -111,7 +96,6 @@ ERC20.Transfer.handlerWithLoader({
         id: accountObject.id + event.block.timestamp.toString(),
         timestamp: BigInt(event.block.timestamp),
       });
-      context.Transfer.set(transferObject);
     } else if (claveAddresses.has(event.params.to.toLowerCase())) {
       // update existing account
       let accountObject: Account = {
@@ -127,7 +111,6 @@ ERC20.Transfer.handlerWithLoader({
         id: accountObject.id + event.block.timestamp.toString(),
         timestamp: BigInt(event.block.timestamp),
       });
-      context.Transfer.set(transferObject);
     }
   },
   wildcard: true,
