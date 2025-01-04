@@ -1,11 +1,11 @@
-type Account {
+type AccountIdleBalance {
   id: ID!
   address: String! @index
   balance: BigInt!
   token: Token! @index
 }
 
-type HistoricalAccount {
+type HistoricalAccountIdleBalance {
   id: ID!
   address: String! @index
   balance: BigInt!
@@ -19,4 +19,18 @@ type Token {
   symbol: String
   decimals: Int
   price: Float
+}
+
+type AccountVenusPosition {
+  id: ID!
+  userAddress: String! @index
+  venusPool: VenusPool! @index
+  shareBalance: BigInt!
+}
+
+type VenusPool {
+  id: ID!
+  address: String! @index
+  underlyingToken: Token! @index
+  tokenPerShare: BigInt!
 }

@@ -1,4 +1,4 @@
-import { getRedisInstance } from "./utils/Redis";
+import { getRedisInstance } from "./Redis";
 
 class WalletCache {
   private readonly CACHE_KEY = "clave:wallets";

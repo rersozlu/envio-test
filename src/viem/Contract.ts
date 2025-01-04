@@ -2,7 +2,7 @@ import { Address, erc20Abi } from "viem";
 import { client } from "./Client";
 import { getContract } from "viem";
 import { handlerContext, Token } from "generated";
-import { TokensToFetchPrice } from "../PriceFetcher";
+import { TokensToFetchPrice } from "../utils/PriceFetcher";
 
 const getTokenData = async (tokenAddress: string) => {
   const tokenContract = getContract({
