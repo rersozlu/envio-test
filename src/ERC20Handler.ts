@@ -57,11 +57,14 @@ ERC20.Transfer.handlerWithLoader({
       return;
     }
 
-    if (senderAccount === undefined && claveAddresses.has(event.params.from.toLowerCase())) {
+    if (claveAddresses.has(event.params.from.toLowerCase())) {
       // create the account
       let accountObject: AccountIdleBalance = {
         id: event.params.from.toLowerCase() + generatedToken.id,
-        balance: 0n - event.params.value,
+        balance:
+          senderAccount == undefined
+            ? 0n - event.params.value
+            : senderAccount.balance - event.params.value,
         address: event.params.from.toLowerCase(),
         token_id: generatedToken.id,
       };
@@ -72,45 +75,18 @@ ERC20.Transfer.handlerWithLoader({
         id: accountObject.id + event.block.timestamp.toString(),
         timestamp: BigInt(event.block.timestamp),
       });
-    } else if (claveAddresses.has(event.params.from.toLowerCase())) {
-      // subtract the balance from the existing users balance
-      let accountObject: AccountIdleBalance = {
-        id: senderAccount.id,
-        balance: senderAccount.balance - event.params.value,
-        address: senderAccount.address.toLowerCase(),
-        token_id: senderAccount.token_id,
-      };
-
-      context.AccountIdleBalance.set(accountObject);
-      context.HistoricalAccountIdleBalance.set({
-        ...accountObject,
-        id: accountObject.id + event.block.timestamp.toString(),
-        timestamp: BigInt(event.block.timestamp),
-      });
     }
 
-    if (receiverAccount === undefined && claveAddresses.has(event.params.to.toLowerCase())) {
+    if (claveAddresses.has(event.params.to.toLowerCase())) {
       // create new account
       let accountObject: AccountIdleBalance = {
         id: event.params.to.toLowerCase() + generatedToken.id,
-        balance: event.params.value,
+        balance:
+          receiverAccount == undefined
+            ? event.params.value
+            : event.params.value + receiverAccount.balance,
         address: event.params.to.toLowerCase(),
         token_id: generatedToken.id,
-      };
-
-      context.AccountIdleBalance.set(accountObject);
-      context.HistoricalAccountIdleBalance.set({
-        ...accountObject,
-        id: accountObject.id + event.block.timestamp.toString(),
-        timestamp: BigInt(event.block.timestamp),
-      });
-    } else if (claveAddresses.has(event.params.to.toLowerCase())) {
-      // update existing account
-      let accountObject: AccountIdleBalance = {
-        id: receiverAccount.id,
-        balance: receiverAccount.balance + event.params.value,
-        address: receiverAccount.address.toLowerCase(),
-        token_id: receiverAccount.token_id,
       };
 
       context.AccountIdleBalance.set(accountObject);

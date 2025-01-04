@@ -13,10 +13,9 @@ export const VenusHandler = async ({
   context: any;
   loaderReturn: any;
 }) => {
-  const { senderAccount, receiverAccount, token, claveAddresses } = loaderReturn as {
+  const { senderAccount, receiverAccount, claveAddresses } = loaderReturn as {
     senderAccount: AccountVenusPosition;
     receiverAccount: AccountVenusPosition;
-    token: Token;
     claveAddresses: Set<string>;
   };
 
@@ -41,47 +40,33 @@ export const VenusHandler = async ({
     return;
   }
 
-  if (senderAccount === undefined && claveAddresses.has(event.params.from.toLowerCase())) {
+  if (claveAddresses.has(event.params.from.toLowerCase())) {
     // create the account
     let accountObject: AccountVenusPosition = {
       id: event.params.from.toLowerCase() + event.srcAddress.toLowerCase(),
-      shareBalance: 0n - event.params.value,
+      shareBalance:
+        senderAccount == undefined
+          ? 0n - event.params.value
+          : senderAccount.shareBalance - event.params.value,
       userAddress: event.params.from.toLowerCase(),
       venusPool_id: event.srcAddress.toLowerCase(),
     };
 
     context.AccountVenusPosition.set(accountObject);
-  } else if (claveAddresses.has(event.params.from.toLowerCase())) {
-    // subtract the balance from the existing users balance
+  }
+
+  if (claveAddresses.has(event.params.to.toLowerCase())) {
+    // create new account
     let accountObject: AccountVenusPosition = {
-      id: senderAccount.id,
-      shareBalance: senderAccount.shareBalance - event.params.value,
-      userAddress: senderAccount.userAddress.toLowerCase(),
-      venusPool_id: senderAccount.venusPool_id,
+      id: event.params.to.toLowerCase() + event.srcAddress.toLowerCase(),
+      shareBalance:
+        receiverAccount == undefined
+          ? event.params.value
+          : event.params.value + receiverAccount.shareBalance,
+      userAddress: event.params.to.toLowerCase(),
+      venusPool_id: event.srcAddress.toLowerCase(),
     };
 
     context.AccountVenusPosition.set(accountObject);
-
-    if (receiverAccount === undefined && claveAddresses.has(event.params.to.toLowerCase())) {
-      // create new account
-      let accountObject: AccountVenusPosition = {
-        id: event.params.to.toLowerCase() + event.srcAddress.toLowerCase(),
-        shareBalance: event.params.value,
-        userAddress: event.params.to.toLowerCase(),
-        venusPool_id: event.srcAddress.toLowerCase(),
-      };
-
-      context.AccountVenusPosition.set(accountObject);
-    } else if (claveAddresses.has(event.params.to.toLowerCase())) {
-      // update existing account
-      let accountObject: AccountVenusPosition = {
-        id: receiverAccount.id,
-        shareBalance: receiverAccount.shareBalance + event.params.value,
-        userAddress: receiverAccount.userAddress.toLowerCase(),
-        venusPool_id: receiverAccount.venusPool_id,
-      };
-
-      context.AccountVenusPosition.set(accountObject);
-    }
   }
 };
