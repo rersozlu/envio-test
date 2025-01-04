@@ -31,6 +31,6 @@ type AccountVenusPosition {
 type VenusPool {
   id: ID!
   address: String! @index
-  underlyingToken: Token! @index
+  underlyingToken: Token @index
   tokenPerShare: BigInt!
 }

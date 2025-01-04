@@ -2,7 +2,7 @@ import { ERC20, AccountIdleBalance, Token } from "generated";
 import { getOrCreateToken } from "./viem/Contract";
 import { walletCache } from "./utils/WalletCache";
 import { priceFetcher } from "./utils/PriceFetcher";
-import { VenusPoolAddress } from "./constants/VenusPools";
+import { VenusPoolAddresses } from "./constants/VenusPools";
 import { VenusHandler } from "./VenusHandler";
 import { venusShareFetcher } from "./utils/VenusShareFetcher";
 
@@ -47,11 +47,11 @@ ERC20.Transfer.handlerWithLoader({
       return;
     }
 
-    if (Object.keys(VenusPoolAddress).includes(event.srcAddress.toLowerCase())) {
+    if (VenusPoolAddresses.includes(event.srcAddress.toLowerCase())) {
       return await VenusHandler({ event, context, loaderReturn });
     }
 
-    const generatedToken = await getOrCreateToken(event.srcAddress.toLowerCase(), token, context);
+    const generatedToken = await getOrCreateToken(event.srcAddress.toLowerCase(), context, token);
 
     if (event.params.from === event.params.to) {
       return;

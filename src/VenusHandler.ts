@@ -1,6 +1,4 @@
-import { Token, AccountVenusPosition, VenusPool, ERC20_Transfer_event } from "generated";
-import { getOrCreateToken } from "./viem/Contract";
-import { VenusPoolAddress } from "./constants/VenusPools";
+import { AccountVenusPosition, VenusPool, ERC20_Transfer_event } from "generated";
 import { VenusPoolsToFetchShare } from "./utils/VenusShareFetcher";
 import { Address } from "viem";
 
@@ -29,8 +27,8 @@ export const VenusHandler = async ({
     const newVenusPool: VenusPool = {
       id: event.srcAddress.toLowerCase(),
       address: event.srcAddress.toLowerCase(),
-      underlyingToken_id: VenusPoolAddress[event.srcAddress.toLowerCase()]?.underlyingToken,
       tokenPerShare: 0n,
+      underlyingToken_id: undefined,
     };
     context.VenusPool.set(newVenusPool);
     VenusPoolsToFetchShare.add(newVenusPool.address as Address);

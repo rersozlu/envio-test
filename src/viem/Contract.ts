@@ -37,8 +37,8 @@ const getTokenData = async (tokenAddress: string) => {
 
 export const getOrCreateToken = async (
   tokenAddress: string,
-  token: Token,
-  context: handlerContext
+  context: handlerContext,
+  token?: Token
 ) => {
   if (token != undefined && token.name != undefined) {
     return token;
