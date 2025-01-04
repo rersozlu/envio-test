@@ -3,8 +3,7 @@ name: erc20indexer
 description: ERC-20 indexer
 networks:
   - id: 324 # ZK Mainnet
-    start_block: 45517700
-    end_block: 45517702
+    start_block: 24805087
     contracts:
       - name: ERC20
         handler: src/ERC20Handler.ts
