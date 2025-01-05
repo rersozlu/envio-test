@@ -19,10 +19,6 @@ export const VenusHandler = async ({
     claveAddresses: Set<string>;
   };
 
-  if (claveAddresses.size == 0) {
-    return;
-  }
-
   const venusPool = await context.VenusPool.get(event.srcAddress.toLowerCase());
 
   if (venusPool === undefined) {
@@ -54,6 +50,10 @@ export const VenusHandler = async ({
 
     context.VenusPool.set(newVenusPool);
     VenusPoolsToFetchShare.add(newVenusPool.address as Address);
+  }
+
+  if (claveAddresses.size == 0) {
+    return;
   }
 
   if (event.params.from === event.params.to) {

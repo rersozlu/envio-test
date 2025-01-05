@@ -49,16 +49,16 @@ ERC20.Transfer.handlerWithLoader({
       context.log.error(e?.message as string);
     }
 
-    if (claveAddresses.size == 0) {
-      return;
-    }
-
     //* Route to earn handlers from ERC20
     if (VenusPoolAddresses.includes(event.srcAddress.toLowerCase())) {
       return await VenusHandler({ event, context, loaderReturn });
     }
     if (SyncswapPoolsToFetchShare.has(event.srcAddress.toLowerCase() as Address)) {
       return await SyncswapHandler({ event, context, loaderReturn });
+    }
+
+    if (claveAddresses.size == 0) {
+      return;
     }
 
     const generatedToken = await getOrCreateToken(event.srcAddress.toLowerCase(), context, token);
