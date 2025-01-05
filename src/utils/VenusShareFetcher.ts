@@ -2,7 +2,6 @@ import { ERC20_Transfer_event, handlerContext } from "generated";
 import { Address, getContract } from "viem";
 import { client } from "../viem/Client";
 import { VenusPoolABI } from "../abi/VenusPool";
-import { getOrCreateToken } from "../viem/Contract";
 
 const THRESHOLD_BLOCK_NUMBER = 52500000;
 

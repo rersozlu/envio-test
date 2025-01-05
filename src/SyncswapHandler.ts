@@ -28,7 +28,7 @@ SyncswapMaster.RegisterPool.handler(async ({ event, context }) => {
     ],
   });
 
-  const token = await context.Token.get(underlyingToken.result as Address);
+  const token = await context.Token.get((underlyingToken.result as Address).toLowerCase());
   const createdToken = await getOrCreateToken(underlyingToken.result as Address, context, token);
 
   const newSyncswapPool: SyncswapPool_t = {

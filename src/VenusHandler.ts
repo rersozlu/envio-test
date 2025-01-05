@@ -40,7 +40,7 @@ export const VenusHandler = async ({
       ],
     });
 
-    const token = await context.Token.get(underlyingToken.result as Address);
+    const token = await context.Token.get((underlyingToken.result as Address).toLowerCase());
     const createdToken = await getOrCreateToken(underlyingToken.result as Address, context, token);
 
     const newVenusPool: VenusPool_t = {
