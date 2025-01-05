@@ -29,7 +29,7 @@ class SyncswapShareFetcher {
     this.latestHandledBlock = event.block.number;
 
     const poolList = Array.from(SyncswapPoolsToFetchShare);
-
+    console.log("fetching sync shares for ", poolList);
     for (let address of poolList) {
       const pool = await context.SyncswapPool.get(address);
       const contract = getContract({ address, abi: SyncswapPoolABI, client });
@@ -46,6 +46,7 @@ class SyncswapShareFetcher {
         pool?.poolType as bigint,
         token0Precision.result as bigint
       );
+      console.log("sync pool ", pool?.name, " price ", price);
       context.SyncswapPool.set({
         id: address,
         address,
@@ -63,7 +64,7 @@ function calculateLPTokenPrice(
   reserve0: bigint,
   totalSupply: bigint,
   poolType: bigint,
-  token0PrecisionMultiplier = 1n
+  token0PrecisionMultiplier: bigint = 1n
 ) {
   if (totalSupply === 0n) return 0n;
 
@@ -74,15 +75,40 @@ function calculateLPTokenPrice(
   if (poolType === 1n) {
     // Classic Pool
     // For classic pools, LP share is based on sqrt(k)
-    return (reserve0 * BigInt(1e18)) / totalSupply;
-  } else {
+    // Multiply by 2 since LP represents both tokens
+    return (2n * reserve0 * BigInt(1e18)) / totalSupply;
+  } else if (poolType === 2n) {
     // Stable Pool
     // Adjust reserves using precision multipliers like in the contract
     const adjustedReserve0 = reserve0 * token0PrecisionMultiplier;
 
     // Calculate value using adjusted reserves
-    return (adjustedReserve0 * BigInt(1e18)) / (totalSupply * token0PrecisionMultiplier);
+    // Multiply by 2 since LP represents both tokens
+    return (2n * adjustedReserve0 * BigInt(1e18)) / (totalSupply * token0PrecisionMultiplier);
   }
+
+  throw new Error("Invalid pool type");
+}
+
+// Helper function for sqrt
+function sqrt(value: bigint) {
+  if (value < 0n) {
+    throw new Error("square root of negative numbers is not supported");
+  }
+
+  if (value < 2n) {
+    return value;
+  }
+
+  function newtonIteration(n: bigint, x0: bigint) {
+    const x1 = (n / x0 + x0) >> 1n;
+    if (x0 === x1 || x0 === x1 - 1n) {
+      return x0;
+    }
+    return newtonIteration(n, x1);
+  }
+
+  return newtonIteration(value, 1n);
 }
 
 export const syncswapShareFetcher = new SyncswapShareFetcher();

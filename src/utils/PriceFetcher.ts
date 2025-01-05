@@ -43,6 +43,8 @@ class PriceFetcher {
     const tokenList = Array.from(TokensToFetchPrice);
 
     const chainId = 324;
+
+    console.log("fetching prices for ", tokenList);
     // Map token addresses to query
     const chainSpecificTokenAddresses = tokenList.map((item) =>
       item.id == TOKEN_ADDRESS.ETHER ? zeroAddress : item.id
@@ -74,6 +76,7 @@ class PriceFetcher {
           price: lowercaseResponse[address],
         };
         context.Token.set(tokenObject);
+        console.log("set token ", tokenObject.name, " price ", tokenObject.price);
       }
     });
   }
