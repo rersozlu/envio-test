@@ -65,8 +65,9 @@ type ClaggPool {
   id: ID!
   address: String! @index
   underlyingToken: Token @index
-  tokenPerShare: BigInt!
   adapter: ClaggAdapter
+  totalLiquidity: BigInt
+  totalSupply: BigInt
 }
 
 type ClaggAdapter {

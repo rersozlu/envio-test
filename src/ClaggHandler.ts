@@ -54,7 +54,8 @@ ClaggMain.Deposit.handlerWithLoader({
               id: event.params.pool.toLowerCase(),
               address: event.params.pool.toLowerCase(),
               adapter_id: adapter,
-              tokenPerShare: 0n,
+              totalLiquidity: 0n,
+              totalSupply: 0n,
               underlyingToken_id: decodedPoolConfig.token.toLowerCase(),
             };
             context.log.info("created pool " + pool.id + " with adapter " + adapter);

@@ -11,7 +11,7 @@ export const ClaggAdaptersToAskPools = new Set<Address>();
 
 class ClaggShareFetcher {
   latestHandledBlock = 0;
-  syncInterval = 1800;
+  syncInterval = 300;
   asyncInterval = 100000;
 
   public async genClaggPoolShares(
@@ -51,18 +51,11 @@ class ClaggShareFetcher {
         functionName: "getPoolInfo",
         data: poolInfoResponse.data as `0x${string}`,
       }) as { totalLiquidity: bigint; totalSupply: bigint };
-      context.log.info(
-        "Clagg shares calculated for " +
-          address +
-          " with " +
-          decodedPoolInfo.totalLiquidity +
-          " total liquidity and " +
-          decodedPoolInfo.totalSupply +
-          " total supply"
-      );
+
       context.ClaggPool.set({
         ...pool,
-        tokenPerShare: BigInt(decodedPoolInfo.totalLiquidity) / BigInt(decodedPoolInfo.totalSupply),
+        totalLiquidity: decodedPoolInfo.totalLiquidity,
+        totalSupply: decodedPoolInfo.totalSupply,
       });
     }
   }
