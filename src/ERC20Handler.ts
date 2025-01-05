@@ -8,6 +8,7 @@ import { venusShareFetcher } from "./utils/VenusShareFetcher";
 import { SyncswapPoolsToFetchShare, syncswapShareFetcher } from "./utils/SyncswapFetcher";
 import { SyncswapHandler } from "./SyncswapHandler";
 import { Address } from "viem";
+import { claggShareFetcher } from "./utils/ClaggFetcher";
 
 ERC20.Transfer.handlerWithLoader({
   loader: async ({ event, context }) => {
@@ -43,15 +44,16 @@ ERC20.Transfer.handlerWithLoader({
       await priceFetcher.genOdosTokenPrices(context, event);
       await venusShareFetcher.genVenusPoolShares(context, event);
       await syncswapShareFetcher.genSyncswapPoolShares(context, event);
-    } catch (e) {
-      console.log(e);
+      await claggShareFetcher.genClaggPoolShares(context, event);
+    } catch (e: any) {
+      context.log.error(e?.message as string);
     }
 
     if (claveAddresses.size == 0) {
       return;
     }
 
-    // Route to earn handlers from ERC20
+    //* Route to earn handlers from ERC20
     if (VenusPoolAddresses.includes(event.srcAddress.toLowerCase())) {
       return await VenusHandler({ event, context, loaderReturn });
     }

@@ -28,7 +28,7 @@ class SyncswapShareFetcher {
     this.latestHandledBlock = event.block.number;
 
     const poolList = Array.from(SyncswapPoolsToFetchShare);
-    console.log("fetching sync shares for ", poolList);
+    context.log.info("fetching sync shares for " + poolList.flat());
     for (let address of poolList) {
       const pool = await context.SyncswapPool.get(address);
       const contract = getContract({ address, abi: SyncswapPoolABI, client });
@@ -45,7 +45,7 @@ class SyncswapShareFetcher {
         pool?.poolType as bigint,
         token0Precision.result as bigint
       );
-      console.log("sync pool ", pool?.name, " price ", price);
+      context.log.info("sync pool " + pool?.name + " price " + price);
       context.SyncswapPool.set({
         id: address,
         address,

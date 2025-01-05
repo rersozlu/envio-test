@@ -53,3 +53,23 @@ type SyncswapPool {
   tokenPerShare: BigInt!
   poolType: BigInt
 }
+
+type AccountClaggPosition {
+  id: ID!
+  userAddress: String! @index
+  claggPool: ClaggPool! @index
+  shareBalance: BigInt!
+}
+
+type ClaggPool {
+  id: ID!
+  address: String! @index
+  underlyingToken: Token @index
+  tokenPerShare: BigInt!
+  adapter: ClaggAdapter
+}
+
+type ClaggAdapter {
+  id: ID!
+  address: String! @index
+}
