@@ -1,6 +1,10 @@
-import { AccountVenusPosition, VenusPool, ERC20_Transfer_event } from "generated";
+import { AccountVenusPosition, VenusPool, ERC20_Transfer_event, handlerContext } from "generated";
 import { VenusPoolsToFetchShare } from "./utils/VenusShareFetcher";
-import { Address } from "viem";
+import { Address, getContract } from "viem";
+import { VenusPoolABI } from "./abi/VenusPool";
+import { client } from "./viem/Client";
+import { getOrCreateToken } from "./viem/Contract";
+import { VenusPool_t } from "generated/src/db/Entities.gen";
 
 export const VenusHandler = async ({
   event,
@@ -8,12 +12,10 @@ export const VenusHandler = async ({
   loaderReturn,
 }: {
   event: ERC20_Transfer_event;
-  context: any;
+  context: handlerContext;
   loaderReturn: any;
 }) => {
-  const { senderAccount, receiverAccount, claveAddresses } = loaderReturn as {
-    senderAccount: AccountVenusPosition;
-    receiverAccount: AccountVenusPosition;
+  const { claveAddresses } = loaderReturn as {
     claveAddresses: Set<string>;
   };
 
@@ -24,12 +26,32 @@ export const VenusHandler = async ({
   const venusPool = await context.VenusPool.get(event.srcAddress.toLowerCase());
 
   if (venusPool === undefined) {
-    const newVenusPool: VenusPool = {
+    const contract = getContract({
+      address: event.srcAddress.toLowerCase() as Address,
+      abi: VenusPoolABI,
+      client,
+    });
+
+    const [name, symbol, underlyingToken] = await client.multicall({
+      contracts: [
+        { ...contract, functionName: "name" },
+        { ...contract, functionName: "symbol" },
+        { ...contract, functionName: "underlying" },
+      ],
+    });
+
+    const token = await context.Token.get(underlyingToken.result as Address);
+    const createdToken = await getOrCreateToken(underlyingToken.result as Address, context, token);
+
+    const newVenusPool: VenusPool_t = {
       id: event.srcAddress.toLowerCase(),
       address: event.srcAddress.toLowerCase(),
       tokenPerShare: 0n,
-      underlyingToken_id: undefined,
+      underlyingToken_id: createdToken.id,
+      name: name.result as string,
+      symbol: symbol.result as string,
     };
+
     context.VenusPool.set(newVenusPool);
     VenusPoolsToFetchShare.add(newVenusPool.address as Address);
   }
@@ -37,6 +59,13 @@ export const VenusHandler = async ({
   if (event.params.from === event.params.to) {
     return;
   }
+
+  const senderAccount = await context.AccountVenusPosition.get(
+    event.params.from.toLowerCase() + event.srcAddress.toLowerCase()
+  );
+  const receiverAccount = await context.AccountVenusPosition.get(
+    event.params.to.toLowerCase() + event.srcAddress.toLowerCase()
+  );
 
   if (claveAddresses.has(event.params.from.toLowerCase())) {
     // create the account

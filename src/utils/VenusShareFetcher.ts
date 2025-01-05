@@ -32,40 +32,29 @@ class VenusShareFetcher {
 
     const contracts = [];
 
-    const underlyingTokenAddresses = [];
-
     for (let address of poolList) {
       const contract = getContract({ address, abi: VenusPoolABI, client });
       contracts.push({
         ...contract,
         functionName: "exchangeRateStored",
       });
-      underlyingTokenAddresses.push({
-        ...contract,
-        functionName: "underlying",
-      });
     }
 
     const poolRates = await client.multicall({ contracts });
-    const underlyingTokenData = await client.multicall({ contracts: underlyingTokenAddresses });
-
-    const underlyingTokens = [];
-    for (let i = 0; i < poolList.length; i++) {
-      const underlyingTokenAddress = underlyingTokenData[i].result as Address;
-      const existingToken = await context.Token.get(underlyingTokenAddress?.toLowerCase());
-      underlyingTokens.push(await getOrCreateToken(underlyingTokenAddress, context, existingToken));
-    }
 
     for (let i = 0; i < poolList.length; i++) {
       if (poolRates[i].result === undefined) {
         continue;
       }
       const address = poolList[i];
+      const pool = await context.VenusPool.get(address);
       context.VenusPool.set({
         id: address,
         address,
+        name: pool?.name,
+        symbol: pool?.symbol,
         tokenPerShare: poolRates[i].result as bigint,
-        underlyingToken_id: underlyingTokens[i].id,
+        underlyingToken_id: pool?.underlyingToken_id,
       });
     }
   }

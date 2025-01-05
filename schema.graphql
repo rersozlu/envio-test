@@ -31,6 +31,25 @@ type AccountVenusPosition {
 type VenusPool {
   id: ID!
   address: String! @index
+  name: String
+  symbol: String
   underlyingToken: Token @index
   tokenPerShare: BigInt!
+}
+
+type AccountSyncswapPosition {
+  id: ID!
+  userAddress: String! @index
+  syncswapPool: SyncswapPool! @index
+  shareBalance: BigInt!
+}
+
+type SyncswapPool {
+  id: ID!
+  name: String
+  symbol: String
+  address: String! @index
+  underlyingToken: Token @index
+  tokenPerShare: BigInt!
+  poolType: BigInt
 }

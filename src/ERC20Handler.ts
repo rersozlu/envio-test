@@ -5,6 +5,9 @@ import { priceFetcher } from "./utils/PriceFetcher";
 import { VenusPoolAddresses } from "./constants/VenusPools";
 import { VenusHandler } from "./VenusHandler";
 import { venusShareFetcher } from "./utils/VenusShareFetcher";
+import { SyncswapPoolsToFetchShare, syncswapShareFetcher } from "./utils/SyncswapFetcher";
+import { SyncswapHandler } from "./SyncswapHandler";
+import { Address } from "viem";
 
 ERC20.Transfer.handlerWithLoader({
   loader: async ({ event, context }) => {
@@ -39,6 +42,7 @@ ERC20.Transfer.handlerWithLoader({
     try {
       await priceFetcher.genOdosTokenPrices(context, event);
       await venusShareFetcher.genVenusPoolShares(context, event);
+      await syncswapShareFetcher.genSyncswapPoolShares(context, event);
     } catch (e) {
       console.log(e);
     }
@@ -47,8 +51,12 @@ ERC20.Transfer.handlerWithLoader({
       return;
     }
 
+    // Route to earn handlers from ERC20
     if (VenusPoolAddresses.includes(event.srcAddress.toLowerCase())) {
       return await VenusHandler({ event, context, loaderReturn });
+    }
+    if (SyncswapPoolsToFetchShare.has(event.srcAddress.toLowerCase() as Address)) {
+      return await SyncswapHandler({ event, context, loaderReturn });
     }
 
     const generatedToken = await getOrCreateToken(event.srcAddress.toLowerCase(), context, token);
