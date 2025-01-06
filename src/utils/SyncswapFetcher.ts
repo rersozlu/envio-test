@@ -32,11 +32,12 @@ class SyncswapShareFetcher {
     for (let address of poolList) {
       const pool = await context.SyncswapPool.get(address);
       const contract = getContract({ address, abi: SyncswapPoolABI, client });
-      const [reserves, totalSupply, token0Precision] = await client.multicall({
+      const [reserves, totalSupply, token0Precision, token1Precision] = await client.multicall({
         contracts: [
           { ...contract, functionName: "getReserves" },
           { ...contract, functionName: "totalSupply" },
           { ...contract, functionName: "token0PrecisionMultiplier" },
+          { ...contract, functionName: "token1PrecisionMultiplier" },
         ],
       });
       const price = calculateLPTokenPrice(
@@ -45,6 +46,12 @@ class SyncswapShareFetcher {
         pool?.poolType as bigint,
         token0Precision.result as bigint
       );
+      const price2 = calculateLPTokenPrice(
+        (reserves.result as Array<bigint>)[1],
+        totalSupply.result as bigint,
+        pool?.poolType as bigint,
+        token1Precision.result as bigint
+      );
       context.log.info("sync pool " + pool?.name + " price " + price);
       context.SyncswapPool.set({
         id: address,
@@ -52,8 +59,10 @@ class SyncswapShareFetcher {
         name: pool?.name,
         symbol: pool?.symbol,
         tokenPerShare: price,
+        tokenPerShare2: price2,
         poolType: pool?.poolType,
         underlyingToken_id: pool?.underlyingToken_id,
+        underlyingToken2_id: pool?.underlyingToken2_id,
       });
     }
   }

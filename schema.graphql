@@ -50,7 +50,9 @@ type SyncswapPool {
   symbol: String
   address: String! @index
   underlyingToken: Token @index
+  underlyingToken2: Token @index
   tokenPerShare: BigInt!
+  tokenPerShare2: BigInt!
   poolType: BigInt
 }
 

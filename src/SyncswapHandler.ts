@@ -19,11 +19,12 @@ SyncswapMaster.RegisterPool.handler(async ({ event, context }) => {
     client,
   });
 
-  const [name, symbol, underlyingToken, poolType] = await client.multicall({
+  const [name, symbol, underlyingToken, underlyingToken2, poolType] = await client.multicall({
     contracts: [
       { ...contract, functionName: "name" },
       { ...contract, functionName: "symbol" },
       { ...contract, functionName: "token0" },
+      { ...contract, functionName: "token1" },
       { ...contract, functionName: "poolType" },
     ],
   });
@@ -31,11 +32,16 @@ SyncswapMaster.RegisterPool.handler(async ({ event, context }) => {
   const token = await context.Token.get((underlyingToken.result as Address).toLowerCase());
   const createdToken = await getOrCreateToken(underlyingToken.result as Address, context, token);
 
+  const token2 = await context.Token.get((underlyingToken2.result as Address).toLowerCase());
+  const createdToken2 = await getOrCreateToken(underlyingToken2.result as Address, context, token2);
+
   const newSyncswapPool: SyncswapPool_t = {
     id: event.params.pool.toLowerCase(),
     address: event.params.pool.toLowerCase(),
     tokenPerShare: 0n,
+    tokenPerShare2: 0n,
     underlyingToken_id: createdToken.id,
+    underlyingToken2_id: createdToken2.id,
     name: name.result as string,
     symbol: symbol.result as string,
     poolType: poolType.result as bigint,
